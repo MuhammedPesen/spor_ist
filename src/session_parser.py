@@ -2,18 +2,19 @@ from bs4 import BeautifulSoup
 import time
 
 class SessionParser:
-    def __init__(self, page, verbose=True):
+    def __init__(self, page, logger):
         self.page = page
-        self.verbose = verbose
+        self.logger = logger
 
     async def parse_sessions(self):
+        self.logger.debug("Checking for and closing any blocking modal.")
         close_button = await self.page.query_selector('#closeModal')
         if close_button:
             await close_button.click()
             time.sleep(1)
-            if self.verbose:
-                print("Closed the blocking modal.")
+            self.logger.info("Closed the blocking modal.")
 
+        self.logger.debug("Parsing session elements.")
         session_elements = await self.page.query_selector_all('#dvScheduler .col-md-1 .panel-body .well')
         session_list = []
 
@@ -49,6 +50,5 @@ class SessionParser:
                 'checkbox_id': checkbox_id
             })
 
-        if self.verbose:
-            print(f"Parsed {len(session_list)} sessions.")
+        self.logger.info(f"Parsed {len(session_list)} sessions.")
         return session_list
